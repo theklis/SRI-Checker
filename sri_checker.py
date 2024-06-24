@@ -24,17 +24,13 @@ def check_for_sri(tag):
     integrity = tag.get('integrity')
     if not integrity:
         return False, "Missing SRI hash"
-    regPattern = r'sha(256|384|512)-[A-Za-z0-9+/=]+'
-    if not re.match(regPattern, integrity):
+    sha256_pattern = r'sha256-[A-Za-z0-9+/=]{43}=$'
+    sha384_pattern = r'sha384-[A-Za-z0-9+/=]{64}$'
+    sha512_pattern = r'sha512-[A-Za-z0-9+/=]{86}==$'
+    if re.match(sha256_pattern, integrity) or re.match(sha384_pattern, integrity) or re.match(sha512_pattern, integrity):
+        return True, "Valid SRI hash"
+    else:
         return False, "Invalid SRI hash"
-    return True, "Valid SRI hash"
-
-def check_urls_from_args():
-    if len(sys.argv) < 2:
-        print("Usage: python sri_checker.py <url1> <url2> <url3>")
-        return
-    urls = sys.argv[1:]  # The first argument is the script name, so skip it
-    check_urls(urls)
 
 # The scanner should accept a list of URLs as input.
 def check_urls(urls):
@@ -44,7 +40,7 @@ def check_urls(urls):
         if not html:
             continue
         scripts, links = get_scripts_links(html)
-        
+
         #  Report any tags with missing or invalid SRI hashes.
         for script_tag in scripts:
             valid, message = check_for_sri(script_tag)
@@ -58,17 +54,24 @@ def check_urls(urls):
                 href = link_tag.get('href','unknown')
                 print(f"<link> - {message}: {href}")
 
+def check_urls_from_args():
+    if len(sys.argv) < 2:
+        print("Usage: python sri_checker.py <url1> <url2> <url3>")
+        return
+    urls = sys.argv[1:]
+    check_urls(urls)
+
 if __name__ == "__main__":
     check_urls_from_args()
     # testurl = """
-    #         <html>
+    #        <html>
     #         <head>
     #             <title>Example Domain</title>
     #             <link rel="stylesheet" href="styles.css" crossorigin="anonymous">
     #         </head>
     #         <body>
     #             <h1>Hello, world!</h1>
-    #             <script src="script.js" integrity="sha26-def456" crossorigin="anonymous"></script>
+    #             <script src="script.js" integrity="sha256-3/1gIbsr1bCvZ2KQgJ7DpTGR3YHH9wpLKGiKNiGCmG8=" crossorigin="anonymous"></script>
     #         </body>
     #         </html>
     # """
