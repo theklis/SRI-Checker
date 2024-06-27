@@ -1,5 +1,5 @@
 from bs4 import BeautifulSoup
-import re, sys, requests, hashlib, base64
+import re, sys, requests
 
 #  For each URL, the scanner should fetch the HTML content.
 def get_html_content(url):
